@@ -1,35 +1,97 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "../include/support.h"
 #include "../include/cthread.h"
 #include "../include/cdata.h"
 #include "../include/aux.h"
 
-int ccreate (void (*start)(void*), void *arg, int prio) {
-	return -1;
+int ccreate (void (*start)(void*), void *arg, int prio)
+{
+	
+	if( !init() )	
+		return -1;
+
+	int ret = 0;	
+
+	// criar contexto de execução da nova thread
+	// com nova stack, etc. que ao retornar chame
+	// uma função de limpeza/função que cheque cjoin/csignal
+
+	// colocar nova thread na lista de aptos
+	
+	return ret;
 }
 
-int cyield(void) {
-	return -1;
+int cyield(void) 
+{
+
+	if( !init() )	
+		return -1;
+
+	// salva o contexto da thread atual
+
+	// guarda na fila de aptos
+
+	// se voltar a executar (FILA_EXEC não vazia) retorna.
+
+	if( escalonador() != 0 )
+		return -1;
 }
 
-int cjoin(int tid) {
-	return -1;
+int cjoin(int tid) 
+{
+
+	if( !init() )	
+		return -1;
 }
 
-int csem_init(csem_t *sem, int count) {
-	return -1;
+int csem_init(csem_t *sem, int count) 
+{
+	if( !init() )	
+		return -1;
+
+	int ret = 0;
+
+	sem = (csem_t *) malloc( sizeof(csem_t) );
+	if(sem != NULL)
+	{
+		sem->count = count;
+		ret = CreateFila2(sem->fila);
+	}
+	else
+		ret = -1;
+
+	return ret;
 }
 
-int cwait(csem_t *sem) {
-	return -1;
+int cwait(csem_t *sem) 
+{
+	if( !init() )	
+		return -1;
+
+	// checa se o recurso está livre
+
+	// se sim, volta a executar
+
+	// senão, bloqueia
+
+	if( escalonador != 0 )
+		return -1;
 }
 
-int csignal(csem_t *sem) {
-	return -1;
+int csignal(csem_t *sem) 
+{
+	if( !init() )	
+		return -1;
+
+	// aumenta a quantidade de recurso
+
+	// volta a executar
 }
 
-int cidentify (char *name, int size) {
+int cidentify (char *name, int size) 
+{
 	strncpy (name, "Sergio Cechin - 2019/2 - Teste de compilacao.", size);
 	return 0;
 }

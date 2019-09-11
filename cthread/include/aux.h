@@ -13,8 +13,8 @@ extern PFILA2 FILA_BLOQ;
 extern TCB_t *FILA_EXEC;
 
 /*------------------------------------------------------------------------------
-Função: inicializa as estruturas (filas de tcb's) caso a biblioteca não tenha
-	sido inicializada.
+Função: inicializa a biblioteca: as estruturas (filas de tcb's), dispara o 
+	primeiro timer e cria o tcb da thread main (mas não salva o contexto)
 
 Ret:	==0, se conseguiu
 	??? (a decidir)
@@ -30,10 +30,19 @@ Ret:	==0, se conseguiu
 int InsertTCB(PFILA2 pFila, TCB_t *tcb);
 
 /*------------------------------------------------------------------------------
-Função: aloca um TCB com os parâmetros dados.
+Função: aloca um TCB com os parâmetros dados. É preciso inicializar o 
+	contexto manualmente.
 Ret:	ponteiro para a estrutura, se conseguiu
 	NULL, caso contrário
 ------------------------------------------------------------------------------*/
-TCB_t *allocTCB(int tid, int state, int prio);
+TCB_t *allocTCB(int tid, int state);
+
+/*------------------------------------------------------------------------------
+Função:	se fila de execução está vazia, coloca a thread mais prioritária
+	para executar e passa o controle a ela.
+Ret:	NÃO RETORNA, se houve sucesso
+	-1, caso contrário
+------------------------------------------------------------------------------*/
+int escalonador();
 
 #endif
