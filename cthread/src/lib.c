@@ -1,12 +1,11 @@
-
 #include <stdio.h>
 #include <string.h>
 #include "../include/support.h"
 #include "../include/cthread.h"
 #include "../include/cdata.h"
+#include "../include/aux.h"
 
-
-int ccreate (void* (*start)(void*), void *arg, int prio) {
+int ccreate (void (*start)(void*), void *arg, int prio) {
 	return -1;
 }
 

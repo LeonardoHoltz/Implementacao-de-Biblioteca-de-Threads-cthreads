@@ -6,7 +6,7 @@
  */
 #ifndef __cdata__
 #define __cdata__
-#include "ucontext.h"
+#include <ucontext.h>
 
 /* Estados das threads
 */
