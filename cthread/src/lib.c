@@ -35,8 +35,9 @@ int cyield(void)
 
 	// se voltar a executar (FILA_EXEC não vazia) retorna.
 
-	if( escalonador() != 0 )
-		return -1;
+
+	// só retorna em caso de erro.
+	return escalonador();
 }
 
 int cjoin(int tid) 
@@ -44,6 +45,16 @@ int cjoin(int tid)
 
 	if( !init() )	
 		return -1;
+
+	// salva o contexto da thread atual
+
+	// guarda na fila de bloqueados salvando o tid que vai esperar
+
+	// se voltar a executar (FILA_EXEC não vazia) retorna.
+
+
+	// só retorna em caso de erro.
+	return escalonador();
 }
 
 int csem_init(csem_t *sem, int count) 
@@ -58,6 +69,8 @@ int csem_init(csem_t *sem, int count)
 	{
 		sem->count = count;
 		ret = CreateFila2(sem->fila);
+		if(!ret)
+			free( (void *) sem );
 	}
 	else
 		ret = -1;

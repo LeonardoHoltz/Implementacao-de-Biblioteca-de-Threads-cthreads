@@ -35,7 +35,7 @@ TCB_t *allocTCB(int tid, int state)
 	if(pTCB != NULL)
 	{
 		// fazer rotina de randomização e checagem se tid já existe aqui
-		// pTCB->tid = 0;
+		// pTCB->tid = novo tid não usado;
 
 		pTCB->state = state;
 		pTCB->prio = 0;
