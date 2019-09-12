@@ -76,7 +76,7 @@ int cwait(csem_t *sem)
 
 	// senão, bloqueia
 
-	if( escalonador != 0 )
+	if( escalonador() != 0 )
 		return -1;
 }
 

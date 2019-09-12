@@ -26,7 +26,7 @@ Retorno:
 	Se correto => Valor positivo, que representa o identificador da thread criada
 	Se erro	   => Valor negativo.
 ******************************************************************************/
-int ccreate (void* (*start)(void*), void *arg, int prio);
+int ccreate (void (*start)(void*), void *arg, int prio);
 
 /******************************************************************************
 Parâmetros:
