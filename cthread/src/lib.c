@@ -89,8 +89,7 @@ int cwait(csem_t *sem)
 
 	// senão, bloqueia
 
-	if( escalonador() != 0 )
-		return -1;
+	return escalonador();
 }
 
 int csignal(csem_t *sem) 
@@ -99,6 +98,10 @@ int csignal(csem_t *sem)
 		return -1;
 
 	// aumenta a quantidade de recurso
+
+	// checa se há alguém esperando o recurso (count < 0)
+
+	// caso sim, acorda ele (nao-preemptivo)
 
 	// volta a executar
 }
