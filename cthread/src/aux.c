@@ -29,14 +29,15 @@ int init()
 
 int InsertTCB(PFILA2 pFila, TCB_t *tcb)
 {
-	int err_on_first = FirstFila2(pFila);
+	int err_vazia = 0;
+	int err_insert = 0;
+	int err_next = 0;
 	
-	if( !err_on_first )
+	if( pFila->first != NULL)
 	{
-		int err_on_insert = 0;
-		int err_on_next = 0;
-		
-		while( !(err_on_insert || err_on_next) )
+		err_vazia = FirstFila2(pFila);
+
+		while( !err_insert && !err_next )
 		{		
 			TCB_t *currTCB = (TCB_t *) GetAtIteratorFila2(pFila);
 	
@@ -44,17 +45,25 @@ int InsertTCB(PFILA2 pFila, TCB_t *tcb)
 			{
 				if(tcb->prio > currTCB->prio)
 				{
-					err_on_insert = InsertBeforeIteratorFila2(pFila);	
+					err_insert = InsertBeforeIteratorFila2(pFila);	
 				}
 			}
+			else
+				err_insert = 1;
 
-			err_on_next = NextFila2(pFila);
+			err_next = NextFila2(pFila);
 		}
-
-		if()
 	}
+	else
+		err_vazia = 1;
 
-	return AppendFila2(pFila, (void *) tcb);
+	if(!err_vazia && !err_insert && !err_next)
+		return 0;
+	else
+	if( pFila == NULL || err_next == -NXTFILA_VAZIA)
+		return AppendFila2(pFila, (void *) tcb);
+	else
+		return -1;
 }
 
 TCB_t *allocTCB(int tid, int state)
