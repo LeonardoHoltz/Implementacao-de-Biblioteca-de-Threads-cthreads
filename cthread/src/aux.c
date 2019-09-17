@@ -27,7 +27,35 @@ int init()
 	return ret;
 }
 
-int InsertTCB(PFILA2 pFila, TCB_t *tcb);
+int InsertTCB(PFILA2 pFila, TCB_t *tcb)
+{
+	int err_on_first = FirstFila2(pFila);
+	
+	if( !err_on_first )
+	{
+		int err_on_insert = 0;
+		int err_on_next = 0;
+		
+		while( !(err_on_insert || err_on_next) )
+		{		
+			TCB_t *currTCB = (TCB_t *) GetAtIteratorFila2(pFila);
+	
+			if(currTCB != NULL)
+			{
+				if(tcb->prio > currTCB->prio)
+				{
+					err_on_insert = InsertBeforeIteratorFila2(pFila);	
+				}
+			}
+
+			err_on_next = NextFila2(pFila);
+		}
+
+		if()
+	}
+
+	return AppendFila2(pFila, (void *) tcb);
+}
 
 TCB_t *allocTCB(int tid, int state)
 {
