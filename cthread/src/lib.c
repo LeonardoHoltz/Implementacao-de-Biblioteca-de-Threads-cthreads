@@ -9,7 +9,7 @@
 int ccreate (void (*start)(void*), void *arg, int prio)
 {
 	
-	if( init() )	
+	if( init() == -INIT_ERROR)	
 		return -1;
 
 	int ret = 0;	
@@ -26,7 +26,7 @@ int ccreate (void (*start)(void*), void *arg, int prio)
 int cyield(void) 
 {
 
-	if( init() )	
+	if( init() == -INIT_ERROR)	
 		return -1;
 
 	// salva o contexto da thread atual
@@ -43,7 +43,7 @@ int cyield(void)
 int cjoin(int tid) 
 {
 
-	if( init() )	
+	if( init() == -INIT_ERROR )	
 		return -1;
 
 	// salva o contexto da thread atual
@@ -59,7 +59,7 @@ int cjoin(int tid)
 
 int csem_init(csem_t *sem, int count) 
 {
-	if( init() )	
+	if( init() == -INIT_ERROR )	
 		return -1;
 
 	int ret = 0;
@@ -80,7 +80,7 @@ int csem_init(csem_t *sem, int count)
 
 int cwait(csem_t *sem) 
 {
-	if( init() )	
+	if( init() == -INIT_ERROR )	
 		return -1;
 
 	// checa se o recurso está livre
@@ -94,7 +94,7 @@ int cwait(csem_t *sem)
 
 int csignal(csem_t *sem) 
 {
-	if( init() )	
+	if( init() == -INIT_ERROR )	
 		return -1;
 
 	// aumenta a quantidade de recurso

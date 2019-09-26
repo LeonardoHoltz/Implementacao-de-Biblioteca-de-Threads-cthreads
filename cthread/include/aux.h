@@ -17,9 +17,18 @@ Função: inicializa a biblioteca: as estruturas (filas de tcb's), dispara o
 	primeiro timer e cria o tcb da thread main (mas não salva o contexto)
 
 Ret:	==0, se conseguiu
-	??? (a decidir)
+	-INIT_ERROR, caso contrário
 ------------------------------------------------------------------------------*/
+#define INIT_ERROR 1
 int init();
+
+/*------------------------------------------------------------------------------
+Função: aloca um TCB com os parâmetros dados. É preciso inicializar o 
+	contexto manualmente.
+Ret:	ponteiro para a estrutura, se conseguiu
+	NULL, caso contrário
+------------------------------------------------------------------------------*/
+TCB_t *allocTCB(int tid, int state);
 
 /*------------------------------------------------------------------------------
 Função:	insere TCB na fila apontada por pFila, levando em conta
@@ -30,12 +39,30 @@ Ret:	==0, se conseguiu
 int InsertTCB(PFILA2 pFila, TCB_t *tcb);
 
 /*------------------------------------------------------------------------------
-Função: aloca um TCB com os parâmetros dados. É preciso inicializar o 
-	contexto manualmente.
-Ret:	ponteiro para a estrutura, se conseguiu
+Função: acha TCB pelo tid na fila apontada por pFila.
+Ret:	ponteiro para TCB, se conseguiu
 	NULL, caso contrário
 ------------------------------------------------------------------------------*/
-TCB_t *allocTCB(int tid, int state);
+TCB_t *findTCB(PFILA2 pFILA, int tid);
+
+/*------------------------------------------------------------------------------
+Função: coloca o iterador da fila apontada por pFila no TCB pelo tid
+Ret:	==0, se conseguiu
+	!=0, caso contrário
+	Fila Vazia	=> -SETIT_VAZIA
+	Não Achou	=> -SETIT_NOTFOUND
+	outro erro	=> -SETIT_OTHER
+------------------------------------------------------------------------------*/
+#define SETIT_VAZIA 1
+#define SETIT_NOTFOUND 2
+#define SETIT_OTHER 3
+int SetIteratorAtTCB(PFILA2 pFILA, int tid);
+
+/*------------------------------------------------------------------------------
+Função:	Remove o TCB do estado de executando
+Ret:	ponteiro para TCB da thread que estava executando
+------------------------------------------------------------------------------*/
+TCB_t *popEXEC();
 
 /*------------------------------------------------------------------------------
 Função:	se fila de execução está vazia, coloca a thread mais prioritária
