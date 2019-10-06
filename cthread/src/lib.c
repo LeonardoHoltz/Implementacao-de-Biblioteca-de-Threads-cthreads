@@ -6,6 +6,7 @@
 #include "../include/cdata.h"
 #include "../include/aux.h"
 
+// HOLTZ: Fiz a alocacao mas não criei a stack ainda ?_?
 int ccreate (void (*start)(void*), void *arg, int prio)
 {
 	
@@ -13,15 +14,21 @@ int ccreate (void (*start)(void*), void *arg, int prio)
 		return -1;
 	FILA_EXEC->prio += stopTimer();
 
-	int ret = 0;	
-
 	// criar contexto de execução da nova thread
 	// com nova stack, etc. que ao retornar chame
 	// uma função de limpeza/função que cheque cjoin/csignal
-
+	
+	static unsigned int tid = 0; // A cada chamada nova o tid inicia o valor incrementado da última chamada
+	TCB_t nova_thread = allocTCB(tid, PROCST_APTO); // ta faltando a stack ainda
+	tid++;
+	
 	// colocar nova thread na lista de aptos
 	
-	return ret;
+	InsertTCB(FILA_APTO, nova_thread);
+	
+	// retorna o identificador da thread criada
+	
+	return nova_thread->tid;
 }
 
 int cyield(void) 
