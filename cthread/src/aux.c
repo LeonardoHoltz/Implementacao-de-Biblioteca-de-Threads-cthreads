@@ -11,24 +11,44 @@ static int _init_cthread_ = 0;
 PFILA2 FILA_APTO;
 PFILA2 FILA_BLOQ;
 TCB_t *FILA_EXEC;
+ucontext_t cleanupCtx;
 
 int init()
 {
 	int ret = 0;
 	if( !_init_cthread_ )
 	{
-		TCB_t *mainThread = allocTCB(0, PROCST_EXEC);
+		TCB_t *mainThread = (TCB_t *) malloc( sizeof(TCB_t) );
 		
-		if( mainThread == NULL)
-			ret = -INIT_ERROR;
-		else
-			FILA_EXEC = mainThread;
-
-		if( ret == 0 )
+		if( mainThread != NULL)
 		{
-			startTimer();
-			_init_cthread_ = 1;
+			mainThread->tid = 0;
+			mainThread->PROCST_EXEC;
+			mainThread->prio = 0;
+			getcontext(mainThread->context);
+			
+			// contexto fixo usado para quando threads terminam, fazer uc_link apontar para cleanupCtx
+			getcontext(&cleanupCtx);
+			cleanupCtx->uc_stack->ss_sp = (void *) malloc(SIGSTKSZ);
+			cleanupCtx->uc_stack->ss_size = SIGSTKSZ;
+			
+			if( cleanupCtx->uc_stack->ss_sp != NULL)
+			{
+				makecontext(&cleanupCtx, /*func de limpeza aqui*/ , 0);
+			
+				FILA_EXEC = mainThread;
+		
+				startTimer();
+				_init_cthread_ = 1;
+			}
+			else
+			{
+				free( mainThread );
+				ret = -INIT_ERROR;
+			}
 		}
+		else
+			ret = -INIT_ERROR;
 	}
 	
 	return ret;
