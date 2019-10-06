@@ -82,7 +82,9 @@ TCB_t *allocTCB(int tid, int state)
 		pTCB->state = state;
 		pTCB->prio = 0;
 		getcontext(pTCB->context);
-		/* Falta o setup da pilha do contexto */
+		/* Fazendo o setup da pilha do contexto */
+		pTCP->context->uc_stack->ss_sp = (void *) malloc( sizeof(SIGSTKSZ) );
+		pTCP->context->uc_stack->ss_size = SIGSTKSZ;
 	}
 	return pTCB;
 }
