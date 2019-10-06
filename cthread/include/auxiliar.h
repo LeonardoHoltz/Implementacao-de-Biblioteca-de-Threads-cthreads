@@ -11,6 +11,7 @@
 extern PFILA2 FILA_APTO;
 extern PFILA2 FILA_BLOQ;
 extern TCB_t *FILA_EXEC;
+extern ucontext_t cleanupCtx;
 
 /*------------------------------------------------------------------------------
 Função: inicializa a biblioteca: as estruturas (filas de tcb's), dispara o 
