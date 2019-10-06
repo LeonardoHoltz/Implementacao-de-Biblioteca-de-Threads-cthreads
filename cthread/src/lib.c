@@ -18,7 +18,7 @@ int ccreate (void (*start)(void*), void *arg, int prio)
 	// com nova stack, etc. que ao retornar chame
 	// uma função de limpeza/função que cheque cjoin/csignal
 
-	static unsigned int tid = 0; // A cada chamada nova o tid inicia o valor incrementado da última chamada
+	static unsigned int tid = 1; // A cada chamada nova o tid inicia o valor incrementado da última chamada
 	TCB_t nova_thread = allocTCB(tid, PROCST_APTO); // ta faltando a stack ainda
 	tid++;
 
