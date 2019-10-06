@@ -9,35 +9,35 @@
 // HOLTZ: Fiz a alocacao mas não criei a stack ainda ?_?
 int ccreate (void (*start)(void*), void *arg, int prio)
 {
-	
-	if( init() == -INIT_ERROR)	
+
+	if( init() == -INIT_ERROR)
 		return -1;
 	FILA_EXEC->prio += stopTimer();
 
 	// criar contexto de execução da nova thread
 	// com nova stack, etc. que ao retornar chame
 	// uma função de limpeza/função que cheque cjoin/csignal
-	
+
 	static unsigned int tid = 0; // A cada chamada nova o tid inicia o valor incrementado da última chamada
 	TCB_t nova_thread = allocTCB(tid, PROCST_APTO); // ta faltando a stack ainda
 	tid++;
-	
+
 	// colocar nova thread na lista de aptos
-	
+
 	InsertTCB(FILA_APTO, nova_thread);
-	
+
 	// retorna o identificador da thread criada
-	
+
 	return nova_thread->tid;
 }
 
-int cyield(void) 
+int cyield(void)
 {
 
-	if( init() == -INIT_ERROR)	
+	if( init() == -INIT_ERROR)
 		return -1;
 	FILA_EXEC->prio += stopTimer();
-
+    else
 	// salva o contexto da thread atual
 
 	// guarda na fila de aptos
@@ -49,10 +49,10 @@ int cyield(void)
 	return escalonador();
 }
 
-int cjoin(int tid) 
+int cjoin(int tid)
 {
 
-	if( init() == -INIT_ERROR )	
+	if( init() == -INIT_ERROR )
 		return -1;
 	FILA_EXEC->prio += stopTimer();
 
@@ -67,12 +67,12 @@ int cjoin(int tid)
 	return escalonador();
 }
 
-int csem_init(csem_t *sem, int count) 
+int csem_init(csem_t *sem, int count)
 {
-	if( init() == -INIT_ERROR )	
+	if( init() == -INIT_ERROR )
 		return -1;
 	FILA_EXEC->prio += stopTimer();
-	
+
 	int ret = 0;
 
 	sem = (csem_t *) malloc( sizeof(csem_t) );
@@ -90,24 +90,34 @@ int csem_init(csem_t *sem, int count)
 	return ret;
 }
 
-int cwait(csem_t *sem) 
+int cwait(csem_t *sem)
 {
-	if( init() == -INIT_ERROR )	
+	if( init() == -INIT_ERROR )
 		return -1;
 	FILA_EXEC->prio += stopTimer();
-	
 	// checa se o recurso está livre
-
+	int ret = 0;
+    if(sem->count > 0)
 	// se sim, volta a executar
-
+    {
+        sem->count--;
+        startTimer();
+        return 0;
+    }
 	// senão, bloqueia
-
-	return escalonador();
+    else
+    {
+        sem->count--;
+        TCB_t *thread_atual = popEXEC();
+        thread_atual->state = PROCST_BLOQ;
+        ret = InsertTCB(sem->fila, thread_atual);
+        return escalonador();
+    }
 }
 
-int csignal(csem_t *sem) 
+int csignal(csem_t *sem)
 {
-	if( init() == -INIT_ERROR )	
+	if( init() == -INIT_ERROR )
 		return -1;
 	FILA_EXEC->prio += stopTimer();
 
@@ -120,7 +130,7 @@ int csignal(csem_t *sem)
 	// volta a executar
 }
 
-int cidentify (char *name, int size) 
+int cidentify (char *name, int size)
 {
 	strncpy (name, "Sergio Cechin - 2019/2 - Teste de compilacao.", size);
 	return 0;
