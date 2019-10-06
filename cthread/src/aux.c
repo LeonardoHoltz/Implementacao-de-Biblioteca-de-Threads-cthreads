@@ -82,9 +82,7 @@ TCB_t *allocTCB(int tid, int state)
 		pTCB->state = state;
 		pTCB->prio = 0;
 		getcontext(pTCB->context);
-		/* Fazendo o setup da pilha do contexto */
-		pTCP->context->uc_stack->ss_sp = (void *) malloc( sizeof(SIGSTKSZ) );
-		pTCP->context->uc_stack->ss_size = SIGSTKSZ;
+		/* Falta o setup da pilha do contexto */
 	}
 	return pTCB;
 }
@@ -152,4 +150,28 @@ int SetIteratorAtTCB(PFILA2 pFILA, int tid)
 		ret = -SETIT_OTHER;
 	
 	return ret;
+}
+
+int escalonador()
+{
+	if( !FirstFila2(FILA_APTO) )
+	{
+		TCB_t *curr = popEXEC();
+		if( curr != NULL )
+		{
+			InsertTCB(FILA_APTO, curr);
+			
+			FirstFila2(FILA_APTO);
+			TCB_t *prox = (TCB_t *) GetAtIteratorFila2(FILA_APTO);
+			FILA_EXEC = prox;
+			DeleteAtIteratorFila2(FILA_APTO);
+			
+			if( prox != NULL )
+				if( curr != prox )
+					swapcontext(curr->context, prox->context);
+		}
+	}
+	
+	startTimer();
+	return 0;
 }
