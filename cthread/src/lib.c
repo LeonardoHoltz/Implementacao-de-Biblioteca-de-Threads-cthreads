@@ -11,6 +11,7 @@ int ccreate (void (*start)(void*), void *arg, int prio)
 	
 	if( init() == -INIT_ERROR)	
 		return -1;
+	FILA_EXEC->prio += stopTimer();
 
 	int ret = 0;	
 
@@ -28,6 +29,7 @@ int cyield(void)
 
 	if( init() == -INIT_ERROR)	
 		return -1;
+	FILA_EXEC->prio += stopTimer();
 
 	// salva o contexto da thread atual
 
@@ -45,6 +47,7 @@ int cjoin(int tid)
 
 	if( init() == -INIT_ERROR )	
 		return -1;
+	FILA_EXEC->prio += stopTimer();
 
 	// salva o contexto da thread atual
 
@@ -61,7 +64,8 @@ int csem_init(csem_t *sem, int count)
 {
 	if( init() == -INIT_ERROR )	
 		return -1;
-
+	FILA_EXEC->prio += stopTimer();
+	
 	int ret = 0;
 
 	sem = (csem_t *) malloc( sizeof(csem_t) );
@@ -75,6 +79,7 @@ int csem_init(csem_t *sem, int count)
 	else
 		ret = -1;
 
+	startTimer();
 	return ret;
 }
 
@@ -82,7 +87,8 @@ int cwait(csem_t *sem)
 {
 	if( init() == -INIT_ERROR )	
 		return -1;
-
+	FILA_EXEC->prio += stopTimer();
+	
 	// checa se o recurso está livre
 
 	// se sim, volta a executar
@@ -96,6 +102,7 @@ int csignal(csem_t *sem)
 {
 	if( init() == -INIT_ERROR )	
 		return -1;
+	FILA_EXEC->prio += stopTimer();
 
 	// aumenta a quantidade de recurso
 
