@@ -4,9 +4,9 @@
 #include "../include/support.h"
 #include "../include/cthread.h"
 #include "../include/cdata.h"
-#include "../include/aux.h"
+#include "../include/auxiliar.h"
 
-// HOLTZ: Fiz a alocacao mas não criei a stack ainda ?_?
+// HOLTZ: Fiz a alocacao mas n terminei a coisa da stack ainda (acho)
 int ccreate (void (*start)(void*), void *arg, int prio)
 {
 
