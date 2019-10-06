@@ -25,17 +25,18 @@ int init()
 			mainThread->tid = 0;
 			mainThread->PROCST_EXEC;
 			mainThread->prio = 0;
+			mainThread->join_check = 0;
 			getcontext(mainThread->context);
 			
 			// contexto fixo usado para quando threads terminam, fazer uc_link apontar para cleanupCtx
 			getcontext(&cleanupCtx);
-			cleanupCtx->uc_stack->ss_sp = (void *) malloc(SIGSTKSZ);
-			cleanupCtx->uc_stack->ss_size = SIGSTKSZ;
+			cleanupCtx->uc_stack.ss_sp = (void *) malloc(SIGSTKSZ);
+			cleanupCtx->uc_stack.ss_size = SIGSTKSZ;
 			cleanupCtx->uc_link = NULL;
 			
-			if( cleanupCtx->uc_stack->ss_sp != NULL)
+			if( cleanupCtx->uc_stack.ss_sp != NULL)
 			{
-				makecontext(&cleanupCtx, /*func de limpeza aqui*/ , 0);
+				makecontext(&cleanupCtx, &cleanupFunc, 0);
 			
 				FILA_EXEC = mainThread;
 		
@@ -60,7 +61,7 @@ int InsertTCB(PFILA2 pFila, TCB_t *tcb)
 	int ret = 0;
 	int insert_middle = 0;
 	
-	if( pFila != NULL )
+	if( pFila != NULL && tcb != NULL )
 	{
 		if( FirstFila2(pFila) != 0 )
 			ret = AppendFila2(pFila, (void *) tcb);
@@ -80,7 +81,7 @@ int InsertTCB(PFILA2 pFila, TCB_t *tcb)
 					}
 				}
 				else
-					DeleteAtIterator2(pFila);
+					DeleteAtIteratorFila2(pFila);
 			}
 			while(  !NextFila2(pFila) )
 				
@@ -102,6 +103,7 @@ TCB_t *allocTCB(int tid, int state)
 		pTCB->tid = tid;
 		pTCB->state = state;
 		pTCB->prio = 0;
+		pTCB->join_check = 0;
 		getcontext(pTCB->context);
 		/* Falta o setup da pilha do contexto */
 	}
@@ -178,6 +180,7 @@ int escalonador(TCB_t *curr)
 	if( !FirstFila2(FILA_APTO) )
 	{		
 		TCB_t *prox = (TCB_t *) GetAtIteratorFila2(FILA_APTO);
+		prox->state = PROCST_EXEC;
 		FILA_EXEC = prox;
 		DeleteAtIteratorFila2(FILA_APTO);
 			
@@ -191,4 +194,34 @@ int escalonador(TCB_t *curr)
 	
 	startTimer();
 	return 0;
+}
+
+void cleanupFunc()
+{
+	TCB_t *curr = popEXEC();
+
+	if( curr != NULL)
+	{
+		if(curr->join_check)
+		{
+			// procura a thread que chamou join na fila de bloqueados
+			int found = SetIteratorAtTCB(FILA_BLOQ, curr->join_tid);
+			if( found == 0 )
+			{
+				// tira da fila de bloqueados
+				TCB_t *join_thread = (TCB_t *) GetAtIteratorFila2(FILA_BLOQ);
+				DeleteAtIteratorFila2(FILA_BLOQ);
+
+				// coloca na fila de aptos
+				InsertTCB(FILA_APTO, join_thread);
+			}
+		}
+		
+		// limpa a stack usada pela thread
+		free(curr->context->uc_stack.ss_sp);
+		// limpa o tcb
+		free(curr);
+	}
+
+	escalonador(NULL);
 }

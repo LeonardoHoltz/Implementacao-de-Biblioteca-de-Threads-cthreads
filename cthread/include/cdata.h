@@ -26,6 +26,9 @@ typedef struct s_TCB {
 	
 	/* A PARTIR DESSE PONTO PODEM SER ACRESCENTADOS CAMPOS NECESSÁRIOS AO DESENVOLVIMENTO DA BIBLIOTECA
 	*/
+
+	int join_check;		// booleano que indica se alguma thread chamou join para essa thread
+	int join_tid;		// tid da thread que chamou join, caso exista
 	
 } TCB_t; 
 

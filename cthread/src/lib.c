@@ -38,10 +38,9 @@ int cyield(void)
 		return -1;
 	FILA_EXEC->prio += stopTimer();
 
-	TCB_t *curr = popEXEC();
 	// guarda na fila de aptos
-
-	// se voltar a executar (FILA_EXEC não vazia) retorna.
+	TCB_t *curr = popEXEC();
+	InsertTCB(FILA_APTO, curr);
 
 	return escalonador(curr);
 }
@@ -53,11 +52,30 @@ int cjoin(int tid)
 		return -1;
 	FILA_EXEC->prio += stopTimer();
 
-	TCB_t *curr = popEXEC();
-	// guarda na fila de bloqueados salvando o tid que vai esperar
+	// procura a thread com tid especificado
+	TCB_t *found = findTCB(FILA_APTO, tid);
+	if(found == NULL)
+		found = findTCB(FILA_BLOQ, tid);
 
-	// se voltar a executar (FILA_EXEC não vazia) retorna.
-	return escalonador(curr);
+	if(found != NULL)
+	{
+		if(found->join_check)
+			return -1;
+
+		// guarda na fila de bloqueados
+		TCB_t *curr = popEXEC();
+		curr->state = PROCST_BLOQ;
+		InsertTCB(FILA_BLOQ,curr);
+
+		// guarda informação de retorno na thread procurada
+		found->join_check = 1;
+		found->join_tid = curr->tid;
+
+		// se voltar a executar (FILA_EXEC não vazia) retorna.
+		return escalonador(curr);
+	}
+	else
+		return -1;
 }
 
 int csem_init(csem_t *sem, int count)
@@ -73,8 +91,6 @@ int csem_init(csem_t *sem, int count)
 	{
 		sem->count = count;
 		ret = CreateFila2(sem->fila);
-		if(!ret)
-			free( (void *) sem );
 	}
 	else
 		ret = -1;
@@ -89,23 +105,30 @@ int cwait(csem_t *sem)
 		return -1;
 	FILA_EXEC->prio += stopTimer();
 	// checa se o recurso está livre
-	int ret = 0;
-    if(sem->count > 0)
+	if(sem->count > 0)
 	// se sim, volta a executar
-    {
-        sem->count--;
-        startTimer();
-        return 0;
-    }
-	// senão, bloqueia
-    else
-    {
-        sem->count--;
-        TCB_t *thread_atual = popEXEC();
-        thread_atual->state = PROCST_BLOQ;
-        ret = InsertTCB(sem->fila, thread_atual);
-        return escalonador(thread_atual);
-    }
+	{
+		sem->count--;
+		startTimer();
+		return 0;
+	}
+	// senão, bloqueia, colocando na fila do semáforo e na fila de bloqueados
+	else
+	{
+		sem->count--;
+		
+		// tira da fila de executando
+		TCB_t *thread_atual = popEXEC();
+		thread_atual->state = PROCST_BLOQ;
+		
+		// colcoca na fila do semáforo
+		AppendFila2(sem->fila, (void *) thread_atual);
+		
+		// coloca na fila de bloqueados
+		AppendFila2(FILA_BLOQ, (void *) thread_atual);
+		
+		return escalonador(thread_atual);
+	}
 }
 
 int csignal(csem_t *sem)
@@ -115,12 +138,29 @@ int csignal(csem_t *sem)
 	FILA_EXEC->prio += stopTimer();
 
 	// aumenta a quantidade de recurso
+	sem->count++;
 
-	// checa se há alguém esperando o recurso (count < 0)
-
+	// checa se há alguém esperando o recurso (count <= 0)
+	if(sem->count <= 0)
 	// caso sim, acorda ele (nao-preemptivo)
+	{
+		// tira da fila do semáforo o primeiro (FCFS)
+		FirstFila2(sem->fila);
+		TCB_t *front = (TCB_t *) GetAtIteratorFila2(sem->fila);
+		DeleteAtIteratorFila2(sem->fila);
+
+		// tira da fila de bloqueados
+		SetIteratorAtTCB(FILA_BLOQ, front->tid);
+		DeleteAtIteratorFila2(FILA_BLOQ);
+	
+		// coloca na fila de aptos
+		front->state = PROCST_APTO;
+		InsertTCB(FILA_APTO, front);
+	}
 
 	// volta a executar
+	startTimer();
+	return 0;
 }
 
 int cidentify (char *name, int size)
