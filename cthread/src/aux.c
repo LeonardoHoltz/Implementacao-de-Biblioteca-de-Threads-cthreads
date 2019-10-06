@@ -78,11 +78,11 @@ TCB_t *allocTCB(int tid, int state)
 	TCB_t *pTCB = (TCB_t *) malloc( sizeof(TCB_t) );
 	if(pTCB != NULL)
 	{
-		// fazer rotina de randomização e checagem se tid já existe aqui
-		// pTCB->tid = novo tid não usado;
-
+		pTCB->tid = tid;
 		pTCB->state = state;
 		pTCB->prio = 0;
+		getcontext(pTCB->context);
+		/* Falta o setup da pilha do contexto */
 	}
 	return pTCB;
 }
