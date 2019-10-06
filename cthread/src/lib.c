@@ -37,16 +37,13 @@ int cyield(void)
 	if( init() == -INIT_ERROR)
 		return -1;
 	FILA_EXEC->prio += stopTimer();
-    else
-	// salva o contexto da thread atual
 
+	TCB_t *curr = popEXEC();
 	// guarda na fila de aptos
 
 	// se voltar a executar (FILA_EXEC não vazia) retorna.
 
-
-	// só retorna em caso de erro.
-	return escalonador();
+	return escalonador(curr);
 }
 
 int cjoin(int tid)
@@ -56,15 +53,11 @@ int cjoin(int tid)
 		return -1;
 	FILA_EXEC->prio += stopTimer();
 
-	// salva o contexto da thread atual
-
+	TCB_t *curr = popEXEC();
 	// guarda na fila de bloqueados salvando o tid que vai esperar
 
 	// se voltar a executar (FILA_EXEC não vazia) retorna.
-
-
-	// só retorna em caso de erro.
-	return escalonador();
+	return escalonador(curr);
 }
 
 int csem_init(csem_t *sem, int count)
@@ -111,7 +104,7 @@ int cwait(csem_t *sem)
         TCB_t *thread_atual = popEXEC();
         thread_atual->state = PROCST_BLOQ;
         ret = InsertTCB(sem->fila, thread_atual);
-        return escalonador();
+        return escalonador(thread_atual);
     }
 }
 

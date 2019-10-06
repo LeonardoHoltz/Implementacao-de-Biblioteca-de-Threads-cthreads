@@ -66,10 +66,10 @@ TCB_t *popEXEC();
 
 /*------------------------------------------------------------------------------
 Função:	se fila de execução está vazia, coloca a thread mais prioritária
-	para executar e passa o controle a ela.
-Ret:	NÃO RETORNA, se houve sucesso
+	para executar e passa o controle a ela, salvando o contexto atual na thread indicada.
+Ret:	0, se houve sucesso
 	-1, caso contrário
 ------------------------------------------------------------------------------*/
-int escalonador();
+int escalonador(TCB_t *curr);
 
 #endif

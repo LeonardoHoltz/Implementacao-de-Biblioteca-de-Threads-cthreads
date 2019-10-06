@@ -31,6 +31,7 @@ int init()
 			getcontext(&cleanupCtx);
 			cleanupCtx->uc_stack->ss_sp = (void *) malloc(SIGSTKSZ);
 			cleanupCtx->uc_stack->ss_size = SIGSTKSZ;
+			cleanupCtx->uc_link = NULL;
 			
 			if( cleanupCtx->uc_stack->ss_sp != NULL)
 			{
@@ -125,7 +126,7 @@ TCB_t *findTCB(PFILA2 pFILA, int tid)
 			{
 				curr = (TCB_t *) GetAtIteratorFila2(pFila);
 				if(curr != NULL)
-					if( curr->tid = tid )
+					if( curr->tid == tid )
 					{
 						ret = curr;
 						break;
@@ -172,25 +173,21 @@ int SetIteratorAtTCB(PFILA2 pFILA, int tid)
 	return ret;
 }
 
-int escalonador()
+int escalonador(TCB_t *curr)
 {
 	if( !FirstFila2(FILA_APTO) )
-	{
-		TCB_t *curr = popEXEC();
+	{		
+		TCB_t *prox = (TCB_t *) GetAtIteratorFila2(FILA_APTO);
+		FILA_EXEC = prox;
+		DeleteAtIteratorFila2(FILA_APTO);
+			
 		if( curr != NULL )
-		{
-			InsertTCB(FILA_APTO, curr);
-			
-			FirstFila2(FILA_APTO);
-			TCB_t *prox = (TCB_t *) GetAtIteratorFila2(FILA_APTO);
-			FILA_EXEC = prox;
-			DeleteAtIteratorFila2(FILA_APTO);
-			
-			if( prox != NULL )
-				if( curr != prox )
-					swapcontext(curr->context, prox->context);
-		}
+			swapcontext(curr->context, prox->context);
+		else
+			setcontext(prox->context);
 	}
+	else
+		exit(0);
 	
 	startTimer();
 	return 0;
