@@ -6,7 +6,6 @@
 #include "../include/cdata.h"
 #include "../include/auxiliar.h"
 
-// HOLTZ: Fiz a alocacao mas n terminei a coisa da stack ainda (acho)
 int ccreate (void (*start)(void*), void *arg, int prio)
 {
 
