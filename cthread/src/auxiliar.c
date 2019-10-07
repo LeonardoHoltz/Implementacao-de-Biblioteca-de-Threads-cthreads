@@ -185,9 +185,9 @@ int escalonador(TCB_t *curr)
 		DeleteAtIteratorFila2(FILA_APTO);
 			
 		if( curr != NULL )
-			swapcontext(curr->context, prox->context);
+			swapcontext( &(curr->context), &(prox->context) );
 		else
-			setcontext(prox->context);
+			setcontext( &(prox->context) );
 	}
 	else
 		exit(0);
