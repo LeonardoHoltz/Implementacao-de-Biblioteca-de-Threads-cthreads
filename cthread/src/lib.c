@@ -28,7 +28,7 @@ int ccreate (void (*start)(void*), void *arg, int prio)
 	nova_thread->context->uc_stack->ss_sp = (void *) malloc( sizeof(SIGSTKSZ) );
 	nova_thread->context->uc_stack->ss_size = SIGSTKSZ;
 	
-	//uc_link?
+	//uc_link
 	nova_thread->context->uc_link = &cleanupCtx;
 	
 	// Modifica o contexto
