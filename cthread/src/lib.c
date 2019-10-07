@@ -29,6 +29,7 @@ int ccreate (void (*start)(void*), void *arg, int prio)
 	nova_thread->context->uc_stack->ss_size = SIGSTKSZ;
 	
 	//uc_link?
+	nova_thread->context->uc_link = &cleanupCtx;
 	
 	// Modifica o contexto
 	makecontext(&(nova_thread->context), &start, 0);
