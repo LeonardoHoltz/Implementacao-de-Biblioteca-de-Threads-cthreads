@@ -73,4 +73,10 @@ Ret:	0, se houve sucesso
 ------------------------------------------------------------------------------*/
 int escalonador(TCB_t *curr);
 
+/*------------------------------------------------------------------------------
+Função que cuida da finalização da thread, limpando as estruturas utilizadas e
+acordando a thread que chamou cjoin(), caso exista.
+------------------------------------------------------------------------------*/
+void cleanupFunc();
+
 #endif

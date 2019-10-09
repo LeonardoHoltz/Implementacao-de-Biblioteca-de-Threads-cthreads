@@ -18,20 +18,20 @@ int ccreate (void (*start)(void*), void *arg, int prio)
 	// uma função de limpeza/função que cheque cjoin/csignal
 
 	static unsigned int tid = 1; // A cada chamada nova o tid inicia o valor incrementado da última chamada
-	TCB_t nova_thread = allocTCB(tid, PROCST_APTO);
+	TCB_t *nova_thread = allocTCB(tid, PROCST_APTO);
 	tid++;
 	
-	getcontext(nova_thread->context);
+	getcontext( &(nova_thread->context) );
 	
 	// Setup da pilha do contexto
-	nova_thread->context->uc_stack->ss_sp = (void *) malloc( sizeof(SIGSTKSZ) );
-	nova_thread->context->uc_stack->ss_size = SIGSTKSZ;
+	nova_thread->context.uc_stack.ss_sp = (void *) malloc( sizeof(SIGSTKSZ) );
+	nova_thread->context.uc_stack.ss_size = SIGSTKSZ;
 	
 	//uc_link
-	nova_thread->context->uc_link = &cleanupCtx;
+	nova_thread->context.uc_link = &cleanupCtx;
 	
 	// Modifica o contexto
-	makecontext(&(nova_thread->context), &start, 1, arg);
+	makecontext(&(nova_thread->context), (void (*)(void))start, 1, arg);
 
 	// colocar nova thread na lista de aptos
 	InsertTCB(FILA_APTO, nova_thread);
@@ -113,6 +113,7 @@ int cwait(csem_t *sem)
 	if( init() == -INIT_ERROR )
 		return -1;
 	FILA_EXEC->prio += stopTimer();
+
 	// checa se o recurso está livre
 	if(sem->count > 0)
 	// se sim, volta a executar

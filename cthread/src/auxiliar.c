@@ -23,18 +23,18 @@ int init()
 		if( mainThread != NULL)
 		{
 			mainThread->tid = 0;
-			mainThread->PROCST_EXEC;
+			mainThread->state = PROCST_EXEC;
 			mainThread->prio = 0;
 			mainThread->join_check = 0;
-			getcontext(&(mainThread->context));
+			getcontext( &(mainThread->context) );
 			
 			// contexto fixo usado para quando threads terminam, fazer uc_link apontar para cleanupCtx
 			getcontext(&cleanupCtx);
-			cleanupCtx->uc_stack.ss_sp = (void *) malloc(SIGSTKSZ);
-			cleanupCtx->uc_stack.ss_size = SIGSTKSZ;
-			cleanupCtx->uc_link = NULL;
+			cleanupCtx.uc_stack.ss_sp = (void *) malloc(SIGSTKSZ);
+			cleanupCtx.uc_stack.ss_size = SIGSTKSZ;
+			cleanupCtx.uc_link = NULL;
 			
-			if( cleanupCtx->uc_stack.ss_sp != NULL)
+			if( cleanupCtx.uc_stack.ss_sp != NULL)
 			{
 				makecontext(&cleanupCtx, &cleanupFunc, 0);
 			
@@ -83,7 +83,7 @@ int InsertTCB(PFILA2 pFila, TCB_t *tcb)
 				else
 					DeleteAtIteratorFila2(pFila);
 			}
-			while(  !NextFila2(pFila) )
+			while(  !NextFila2(pFila) );
 				
 			if( !insert_middle )
 				ret = AppendFila2(pFila, (void *) tcb);
@@ -104,7 +104,7 @@ TCB_t *allocTCB(int tid, int state)
 		pTCB->state = state;
 		pTCB->prio = 0;
 		pTCB->join_check = 0;
-		getcontext(pTCB->context);
+		getcontext( &(pTCB->context) );
 		/* Falta o setup da pilha do contexto */
 	}
 	return pTCB;
@@ -117,7 +117,7 @@ TCB_t *popEXEC()
 	return ret;
 }
 
-TCB_t *findTCB(PFILA2 pFILA, int tid)
+TCB_t *findTCB(PFILA2 pFila, int tid)
 {
 	TCB_t *ret = NULL;
 	TCB_t *curr;
@@ -139,7 +139,7 @@ TCB_t *findTCB(PFILA2 pFILA, int tid)
 	return ret;
 }
 
-int SetIteratorAtTCB(PFILA2 pFILA, int tid)
+int SetIteratorAtTCB(PFILA2 pFila, int tid)
 {
 	int ret, found = 0;
 	TCB_t *curr;
@@ -159,15 +159,15 @@ int SetIteratorAtTCB(PFILA2 pFILA, int tid)
 						break;
 					}
 			}
-			while( !NextFila2(pFila) )
+			while( !NextFila2(pFila) );
 		
 			if( !found )
-				ret = -SETIT_NOTFOUND
+				ret = -SETIT_NOTFOUND;
 			else
 				ret = 0;
 		}
 		else
-			ret = -SETIT_VAZIA
+			ret = -SETIT_VAZIA;
 	}
 	else 
 		ret = -SETIT_OTHER;
@@ -218,7 +218,7 @@ void cleanupFunc()
 		}
 		
 		// limpa a stack usada pela thread
-		free(curr->context->uc_stack.ss_sp);
+		free(curr->context.uc_stack.ss_sp);
 		// limpa o tcb
 		free(curr);
 	}

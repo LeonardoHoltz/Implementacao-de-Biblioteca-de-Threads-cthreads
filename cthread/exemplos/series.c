@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 
-void* fatorial(void *i) {
+void fatorial(void *i) {
      int fat=1, n;
 
      n = *(int *)i;
@@ -22,7 +22,7 @@ void* fatorial(void *i) {
      return;
 }
 
-void* fibonnaci (void *i) {
+void fibonnaci (void *i) {
      int fi, fj, fk, k, n;
 
      n = *(int *)i;
