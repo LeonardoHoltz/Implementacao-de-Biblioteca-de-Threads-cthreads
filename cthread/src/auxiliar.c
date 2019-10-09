@@ -8,8 +8,12 @@
 
 static int _init_cthread_ = 0;
 
-PFILA2 FILA_APTO;
-PFILA2 FILA_BLOQ;
+FILA2 fApto;
+PFILA2 FILA_APTO = &fApto;
+
+FILA2 fBloq;
+PFILA2 FILA_BLOQ = &fBloq;
+
 TCB_t *FILA_EXEC;
 ucontext_t cleanupCtx;
 
@@ -19,6 +23,9 @@ int init()
 	if( !_init_cthread_ )
 	{
 		TCB_t *mainThread = (TCB_t *) malloc( sizeof(TCB_t) );
+		
+		CreateFila2(FILA_APTO);
+		CreateFila2(FILA_BLOQ);
 		
 		if( mainThread != NULL)
 		{
