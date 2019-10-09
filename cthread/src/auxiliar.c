@@ -26,7 +26,7 @@ int init()
 			mainThread->PROCST_EXEC;
 			mainThread->prio = 0;
 			mainThread->join_check = 0;
-			getcontext(mainThread->context);
+			getcontext(&(mainThread->context));
 			
 			// contexto fixo usado para quando threads terminam, fazer uc_link apontar para cleanupCtx
 			getcontext(&cleanupCtx);
