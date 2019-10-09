@@ -31,7 +31,7 @@ int ccreate (void (*start)(void*), void *arg, int prio)
 	nova_thread->context->uc_link = &cleanupCtx;
 	
 	// Modifica o contexto
-	makecontext(&(nova_thread->context), &start, 0);
+	makecontext(&(nova_thread->context), &start, 1, arg);
 
 	// colocar nova thread na lista de aptos
 	InsertTCB(FILA_APTO, nova_thread);
