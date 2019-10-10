@@ -35,12 +35,12 @@ void printFila2(PFILA2 pFila)
 				if(curr->join_check)
 					printf("join_tid: %d", curr->join_tid);
 				printf("\n");
-						
+
 			}
-			while( !NextFila2(pFila) );	
-			printf("\n");		
+			while( !NextFila2(pFila) );
+			printf("\n");
 		}
-	}	
+	}
 	else
 		printf("Ponteiro Nulo\n");
 }
@@ -55,7 +55,7 @@ int init()
 
 		CreateFila2(FILA_APTO);
 		CreateFila2(FILA_BLOQ);
-		
+
 		if( mainThread != NULL)
 		{
 			mainThread->tid = 0;
@@ -69,13 +69,13 @@ int init()
 			cleanupCtx.uc_stack.ss_sp = (void *) malloc(SIGSTKSZ);
 			cleanupCtx.uc_stack.ss_size = SIGSTKSZ;
 			cleanupCtx.uc_link = NULL;
-			
+
 			if( cleanupCtx.uc_stack.ss_sp != NULL)
 			{
 				makecontext(&cleanupCtx, &cleanupFunc, 0);
-				
+
 				FILA_EXEC = mainThread;
-		
+
 				startTimer();
 				_init_cthread_ = 1;
 			}
@@ -88,7 +88,7 @@ int init()
 		else
 			ret = -INIT_ERROR;
 	}
-	
+
 	return ret;
 }
 
@@ -96,7 +96,7 @@ int InsertTCB(PFILA2 pFila, TCB_t *tcb)
 {
 	int ret = 0;
 	int insert_middle = 0;
-	
+
 	if( pFila != NULL && tcb != NULL )
 	{
 		if( FirstFila2(pFila) != 0 )
@@ -105,14 +105,14 @@ int InsertTCB(PFILA2 pFila, TCB_t *tcb)
 		{
 			FirstFila2(pFila);
 			do
-			{		
+			{
 				TCB_t *currTCB = (TCB_t *) GetAtIteratorFila2(pFila);
-	
+
 				if(currTCB != NULL)
 				{
 					if(tcb->prio < currTCB->prio)
-					{	
-						ret = InsertBeforeIteratorFila2(pFila, (void *) tcb);	
+					{
+						ret = InsertBeforeIteratorFila2(pFila, (void *) tcb);
 						insert_middle = 1;
 						break;
 					}
@@ -121,7 +121,7 @@ int InsertTCB(PFILA2 pFila, TCB_t *tcb)
 					DeleteAtIteratorFila2(pFila);
 			}
 			while(  !NextFila2(pFila) );
-				
+
 			if( !insert_middle )
 				ret = AppendFila2(pFila, (void *) tcb);
 		}
@@ -142,7 +142,7 @@ TCB_t *allocTCB(int tid, int state)
 		pTCB->prio = 0;
 		pTCB->join_check = 0;
 		getcontext( &(pTCB->context) );
-		
+
 	}
 	return pTCB;
 }
@@ -197,7 +197,7 @@ int SetIteratorAtTCB(PFILA2 pFila, int tid)
 					}
 			}
 			while( !NextFila2(pFila) );
-		
+
 			if( !found )
 				ret = -SETIT_NOTFOUND;
 			else
@@ -206,9 +206,9 @@ int SetIteratorAtTCB(PFILA2 pFila, int tid)
 		else
 			ret = -SETIT_VAZIA;
 	}
-	else 
+	else
 		ret = -SETIT_OTHER;
-	
+
 	return ret;
 }
 
@@ -230,16 +230,16 @@ int escalonador(TCB_t *curr)
 			if( curr != NULL )
 			{
 				startTimer();
-				swapcontext( &(curr->context), &(prox->context) );			
-			}			
+				swapcontext( &(curr->context), &(prox->context) );
+			}
 			else
 				setcontext( &(prox->context) );
-		}	
+		}
 	}
 	else
 		// nenhuma thread no estado apto, sem trabalho para fazer.
 		exit(0);
-	
+
 	startTimer();
 	return 0;
 }
@@ -249,7 +249,7 @@ void cleanupFunc()
 	TCB_t *curr = popEXEC();
 
 	if( curr != NULL)
-	{		
+	{
 		// se alguém chamou cjoin nessa thread
 		if(curr->join_check)
 		{
@@ -265,7 +265,7 @@ void cleanupFunc()
 				InsertTCB(FILA_APTO, join_thread);
 			}
 		}
-		
+
 		// limpa a stack usada pela thread
 		free(curr->context.uc_stack.ss_sp);
 		// limpa o tcb

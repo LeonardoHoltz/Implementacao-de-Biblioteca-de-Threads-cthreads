@@ -20,7 +20,7 @@ int ccreate (void (*start)(void*), void *arg, int prio)
 	static unsigned int tid = 1; // A cada chamada nova o tid inicia o valor incrementado da última chamada
 	TCB_t *nova_thread = allocTCB(tid, PROCST_APTO);
 	tid++;
-	
+
 	if(nova_thread == NULL)
 	{
 		startTimer();
@@ -30,9 +30,9 @@ int ccreate (void (*start)(void*), void *arg, int prio)
 	getcontext( &(nova_thread->context) );
 
 	// Setup da pilha do contexto
-	nova_thread->context.uc_stack.ss_sp = (void *) malloc( sizeof(SIGSTKSZ) );
+	nova_thread->context.uc_stack.ss_sp = (void *) malloc(SIGSTKSZ);
 	nova_thread->context.uc_stack.ss_size = SIGSTKSZ;
-	
+
 	if(nova_thread->context.uc_stack.ss_sp == NULL)
 	{
 		free(nova_thread);
@@ -42,7 +42,7 @@ int ccreate (void (*start)(void*), void *arg, int prio)
 
 	//uc_link
 	nova_thread->context.uc_link = &cleanupCtx;
-	
+
 	// Modifica o contexto
 	makecontext(&(nova_thread->context), (void (*)(void))start, 1, arg);
 
@@ -101,14 +101,14 @@ int cjoin(int tid)
 			// guarda informação de retorno na thread procurada
 			found->join_check = 1;
 			found->join_tid = curr->tid;
-		
+
 			// se voltar a executar (FILA_EXEC não vazia) retorna.
 			escalonador(curr);
 			startTimer();
 			return 0;
 		}
 	}
-		
+
 	startTimer();
 	return -1;
 }
@@ -152,20 +152,20 @@ int cwait(csem_t *sem)
 	else
 	{
 		sem->count--;
-		
+
 		// tira da fila de executando
 		TCB_t *thread_atual = popEXEC();
 		thread_atual->state = PROCST_BLOQ;
-		
+
 		// colcoca na fila do semáforo
 		AppendFila2(sem->fila, (void *) thread_atual);
-		
+
 		// coloca na fila de bloqueados
 		AppendFila2(FILA_BLOQ, (void *) thread_atual);
-		
+
 		escalonador(thread_atual);
 		startTimer();
-		return 0;	
+		return 0;
 	}
 }
 
@@ -190,7 +190,7 @@ int csignal(csem_t *sem)
 		// tira da fila de bloqueados
 		SetIteratorAtTCB(FILA_BLOQ, front->tid);
 		DeleteAtIteratorFila2(FILA_BLOQ);
-	
+
 		// coloca na fila de aptos
 		front->state = PROCST_APTO;
 		InsertTCB(FILA_APTO, front);
