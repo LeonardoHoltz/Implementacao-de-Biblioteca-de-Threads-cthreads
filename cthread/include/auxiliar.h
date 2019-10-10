@@ -79,4 +79,6 @@ acordando a thread que chamou cjoin(), caso exista.
 ------------------------------------------------------------------------------*/
 void cleanupFunc();
 
+void printFila2(PFILA2 pFila);
+
 #endif

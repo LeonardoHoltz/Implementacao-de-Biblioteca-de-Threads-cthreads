@@ -8,6 +8,8 @@
 
 static int _init_cthread_ = 0;
 
+
+
 FILA2 fApto;
 PFILA2 FILA_APTO = &fApto;
 
@@ -17,13 +19,40 @@ PFILA2 FILA_BLOQ = &fBloq;
 TCB_t *FILA_EXEC;
 ucontext_t cleanupCtx;
 
+void printFila2(PFILA2 pFila)
+{
+	if(FILA_EXEC != NULL)
+		printf("exec: tid: %d prio: %d\n", FILA_EXEC->tid, FILA_EXEC->prio);
+
+	if (pFila != NULL)
+	{
+		if( FirstFila2(pFila) == 0 )
+		{
+			do
+			{
+				TCB_t *curr = (TCB_t *) GetAtIteratorFila2(pFila);
+				printf("tid: %d prio: %d ", curr->tid, curr->prio);
+				if(curr->join_check)
+					printf("join_tid: %d", curr->join_tid);
+				printf("\n");
+						
+			}
+			while( !NextFila2(pFila) );	
+			printf("\n");		
+		}
+	}	
+	else
+		printf("Ponteiro Nulo\n");
+}
+
 int init()
 {
 	int ret = 0;
+
 	if( !_init_cthread_ )
 	{
 		TCB_t *mainThread = (TCB_t *) malloc( sizeof(TCB_t) );
-		
+
 		CreateFila2(FILA_APTO);
 		CreateFila2(FILA_BLOQ);
 		
@@ -34,7 +63,7 @@ int init()
 			mainThread->prio = 0;
 			mainThread->join_check = 0;
 			getcontext( &(mainThread->context) );
-			
+
 			// contexto fixo usado para quando threads terminam, fazer uc_link apontar para cleanupCtx
 			getcontext(&cleanupCtx);
 			cleanupCtx.uc_stack.ss_sp = (void *) malloc(SIGSTKSZ);
@@ -44,7 +73,7 @@ int init()
 			if( cleanupCtx.uc_stack.ss_sp != NULL)
 			{
 				makecontext(&cleanupCtx, &cleanupFunc, 0);
-			
+				
 				FILA_EXEC = mainThread;
 		
 				startTimer();
@@ -74,6 +103,7 @@ int InsertTCB(PFILA2 pFila, TCB_t *tcb)
 			ret = AppendFila2(pFila, (void *) tcb);
 		else
 		{
+			FirstFila2(pFila);
 			do
 			{		
 				TCB_t *currTCB = (TCB_t *) GetAtIteratorFila2(pFila);
@@ -112,7 +142,7 @@ TCB_t *allocTCB(int tid, int state)
 		pTCB->prio = 0;
 		pTCB->join_check = 0;
 		getcontext( &(pTCB->context) );
-		/* Falta o setup da pilha do contexto */
+		
 	}
 	return pTCB;
 }
@@ -130,7 +160,7 @@ TCB_t *findTCB(PFILA2 pFila, int tid)
 	TCB_t *curr;
 
 	if( pFila != NULL )
-		if( !FirstFila2(pFila) )
+		if( FirstFila2(pFila) == 0 )
 			do
 			{
 				curr = (TCB_t *) GetAtIteratorFila2(pFila);
@@ -141,7 +171,7 @@ TCB_t *findTCB(PFILA2 pFila, int tid)
 						break;
 					}
 			}
-			while( !NextFila2(pFila) );
+			while( NextFila2(pFila) == 0 );
 
 	return ret;
 }
@@ -184,19 +214,30 @@ int SetIteratorAtTCB(PFILA2 pFila, int tid)
 
 int escalonador(TCB_t *curr)
 {
-	if( !FirstFila2(FILA_APTO) )
-	{		
+
+	if( FirstFila2(FILA_APTO) == 0 )
+	{
+		//coloca primeiro da fila de aptos na fila de execução
+		FirstFila2(FILA_APTO);
 		TCB_t *prox = (TCB_t *) GetAtIteratorFila2(FILA_APTO);
 		prox->state = PROCST_EXEC;
 		FILA_EXEC = prox;
 		DeleteAtIteratorFila2(FILA_APTO);
-			
-		if( curr != NULL )
-			swapcontext( &(curr->context), &(prox->context) );
-		else
-			setcontext( &(prox->context) );
+
+
+		if( curr != prox )
+		{
+			if( curr != NULL )
+			{
+				startTimer();
+				swapcontext( &(curr->context), &(prox->context) );			
+			}			
+			else
+				setcontext( &(prox->context) );
+		}	
 	}
 	else
+		// nenhuma thread no estado apto, sem trabalho para fazer.
 		exit(0);
 	
 	startTimer();
@@ -208,10 +249,11 @@ void cleanupFunc()
 	TCB_t *curr = popEXEC();
 
 	if( curr != NULL)
-	{
+	{		
+		// se alguém chamou cjoin nessa thread
 		if(curr->join_check)
 		{
-			// procura a thread que chamou join na fila de bloqueados
+			// procura a thread que chamou cjoin na fila de bloqueados
 			int found = SetIteratorAtTCB(FILA_BLOQ, curr->join_tid);
 			if( found == 0 )
 			{

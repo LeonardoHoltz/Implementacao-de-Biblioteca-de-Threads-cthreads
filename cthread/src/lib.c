@@ -21,12 +21,25 @@ int ccreate (void (*start)(void*), void *arg, int prio)
 	TCB_t *nova_thread = allocTCB(tid, PROCST_APTO);
 	tid++;
 	
+	if(nova_thread == NULL)
+	{
+		startTimer();
+		return -1;
+	}
+
 	getcontext( &(nova_thread->context) );
-	
+
 	// Setup da pilha do contexto
 	nova_thread->context.uc_stack.ss_sp = (void *) malloc( sizeof(SIGSTKSZ) );
 	nova_thread->context.uc_stack.ss_size = SIGSTKSZ;
 	
+	if(nova_thread->context.uc_stack.ss_sp == NULL)
+	{
+		free(nova_thread);
+		startTimer();
+		return -1;
+	}
+
 	//uc_link
 	nova_thread->context.uc_link = &cleanupCtx;
 	
@@ -34,15 +47,22 @@ int ccreate (void (*start)(void*), void *arg, int prio)
 	makecontext(&(nova_thread->context), (void (*)(void))start, 1, arg);
 
 	// colocar nova thread na lista de aptos
-	InsertTCB(FILA_APTO, nova_thread);
+	if(InsertTCB(FILA_APTO, nova_thread) == -1)
+	{
+		free(nova_thread->context.uc_stack.ss_sp);
+		free(nova_thread);
+		startTimer();
+		return -1;
+	}
 
+
+	startTimer();
 	// retorna o identificador da thread criada
 	return nova_thread->tid;
 }
 
-int cyield(void)
+int cyield()
 {
-
 	if( init() == -INIT_ERROR)
 		return -1;
 	FILA_EXEC->prio += stopTimer();
@@ -51,15 +71,18 @@ int cyield(void)
 	TCB_t *curr = popEXEC();
 	InsertTCB(FILA_APTO, curr);
 
-	return escalonador(curr);
+	escalonador(curr);
+
+	startTimer();
+	return 0;
 }
 
 int cjoin(int tid)
 {
-
 	if( init() == -INIT_ERROR )
 		return -1;
 	FILA_EXEC->prio += stopTimer();
+
 
 	// procura a thread com tid especificado
 	TCB_t *found = findTCB(FILA_APTO, tid);
@@ -68,23 +91,26 @@ int cjoin(int tid)
 
 	if(found != NULL)
 	{
-		if(found->join_check)
-			return -1;
+		if(!found->join_check)
+		{
+			// guarda na fila de bloqueados
+			TCB_t *curr = popEXEC();
+			curr->state = PROCST_BLOQ;
+			AppendFila2(FILA_BLOQ, (void *) curr);
 
-		// guarda na fila de bloqueados
-		TCB_t *curr = popEXEC();
-		curr->state = PROCST_BLOQ;
-		InsertTCB(FILA_BLOQ,curr);
-
-		// guarda informação de retorno na thread procurada
-		found->join_check = 1;
-		found->join_tid = curr->tid;
-
-		// se voltar a executar (FILA_EXEC não vazia) retorna.
-		return escalonador(curr);
+			// guarda informação de retorno na thread procurada
+			found->join_check = 1;
+			found->join_tid = curr->tid;
+		
+			// se voltar a executar (FILA_EXEC não vazia) retorna.
+			escalonador(curr);
+			startTimer();
+			return 0;
+		}
 	}
-	else
-		return -1;
+		
+	startTimer();
+	return -1;
 }
 
 int csem_init(csem_t *sem, int count)
@@ -95,8 +121,8 @@ int csem_init(csem_t *sem, int count)
 
 	int ret = 0;
 
-	sem = (csem_t *) malloc( sizeof(csem_t) );
-	if(sem != NULL)
+	sem->fila = (PFILA2) malloc( sizeof(FILA2) );
+	if(sem->fila != NULL)
 	{
 		sem->count = count;
 		ret = CreateFila2(sem->fila);
@@ -137,7 +163,9 @@ int cwait(csem_t *sem)
 		// coloca na fila de bloqueados
 		AppendFila2(FILA_BLOQ, (void *) thread_atual);
 		
-		return escalonador(thread_atual);
+		escalonador(thread_atual);
+		startTimer();
+		return 0;	
 	}
 }
 

@@ -12,12 +12,12 @@
 #include "../include/cthread.h"
 #include <stdio.h>
 
-void* func0(void *arg) {
+void func0(void *arg) {
 	printf("Eu sou a thread ID0 imprimindo %d\n", *((int *)arg));
 	return;
 }
 
-void* func1(void *arg) {
+void func1(void *arg) {
 	printf("Eu sou a thread ID1 imprimindo %d\n", *((int *)arg));
 }
 
@@ -35,5 +35,7 @@ int main(int argc, char *argv[]) {
 	cjoin(id1);
 
 	printf("Eu sou a main voltando para terminar o programa\n");
+
+	return 0;
 }
 

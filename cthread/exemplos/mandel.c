@@ -40,7 +40,7 @@ double  distance(double a, double b) {
     return (a*a + b*b);
 }
 
-void*   mandel(void *arg) {
+void   mandel(void *arg) {
     double dx, dy, z_r, z_i, c_r, c_i, c0_r, c0_i, c1_r, c1_i, aux;
     int i, j, k, lim, n, t, tid, yi, yf;
     int *plan;
@@ -90,7 +90,7 @@ void*   mandel(void *arg) {
             plan[(i-yi)*n+j] = (int)(k*((double)255/lim)+ 0.5i);
           }
       }
-    return(NULL);
+    return;
 }
 
 void usage(void) {

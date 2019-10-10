@@ -15,7 +15,7 @@
 int vetor[MAX_SIZE];
 int  inc = 0;
 
-void *func(void *arg){
+void func(void *arg){
 
    while ( inc < MAX_SIZE ) {
        vetor[inc] = (int)arg;
@@ -26,7 +26,7 @@ void *func(void *arg){
            continue;
    }
 
-   return (NULL);
+   return;
 }
 
 
